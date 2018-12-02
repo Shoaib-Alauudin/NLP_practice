@@ -83,9 +83,10 @@ sentences = nltk.sent_tokenize(paragraph)
 for i in range(len(sentences)):
     sentences[i] = sentences[i].lower()
     sentences[i] = re.sub(r'\W', ' ', sentences[i])
+    sentences[i] = re.sub(r'\d',' ', sentences[i])
     sentences[i] = re.sub(r'\s+',' ', sentences[i])
     
-# Creating the histogram    
+"""    Creating the histogram        """    
 word_occur = {}
 for sentence in sentences:
     words = nltk.word_tokenize(sentence)
@@ -97,11 +98,11 @@ for sentence in sentences:
 
 
 
-# Most frequent Words Dictionary
+"""     Most frequent Words Dictionary      """
 import heapq 
 frequent_words = heapq.nlargest(157, word_occur, key=word_occur.get)
 
-# IDF (Inverse Document Frequency)
+""" IDF matrix (Inverse Document Frequency) """
 IDF_words = {}
 for word in frequent_words:
     doct_count = 0
@@ -111,16 +112,28 @@ for word in frequent_words:
     IDF_words[word] = np.log((len(sentences)/doct_count)+1)
     
     
-# TF matrix
+"""-------TF matrix-------"""
 tf_matrix = {}
 for word in frequent_words:
     doc_tf = []
     for sentence in sentences:
         freq = 0
         for sent_word in nltk.word_tokenize(sentence):
-            if sent_word == word:
+            if word == sent_word:
                 freq += 1
-        word_tf = freq/len(nltk.word_tokenize(sentence))
-        doc_tf.append(word_tf)
-    tf_matrix[word] = doc_tf
+        tf_word = freq/len(nltk.word_tokenize(sentence))
+        doc_tf.append(tf_word)
+    tf_matrix[word] = doc_tf 
+
+""" TF-IDF Calculation """
+tf_idf_matrix = []
+for word in tf_matrix.keys():
+    tf_idf_word = []
+    for value in tf_matrix[word]:
+        score = value * IDF_words[word]
+        tf_idf_word.append(score)
+    tf_idf_matrix.append(tf_idf_word)
     
+import numpy as np
+tf_idf_X = np.asarray(tf_idf_matrix)
+tf_idf_X = np.transpose(tf_idf_X)
